@@ -1,0 +1,264 @@
+openapi: 3.0.3
+info:
+  title: ShipSaving API
+  version: "2.1"
+  description: API documentation for ShipSaving V2.1 (2025.06.17)
+  contact:
+    email: support@shipsaving.com
+    url: https://www.shipsaving.com
+
+servers:
+  - url: https://api.shipsaving.com/api
+    description: Production server
+
+paths:
+  /orders/create:
+    post:
+      summary: Create Order
+      description: Create an order in the ShipSaving system.
+      parameters:
+        - name: api_token
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_number:
+                    type: string
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /rates/list:
+    post:
+      summary: Check Label Pricing List
+      description: Retrieve shipping rates for a given package and address.
+      parameters:
+        - name: api_token
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: object
+                to:
+                  type: object
+                shipments:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Shipment'
+                order:
+                  type: object
+      responses:
+        '200':
+          description: Rate list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    shipment_id:
+                      type: string
+                    rate_id:
+                      type: string
+                    carrier:
+                      type: string
+                    service:
+                      type: string
+                    rate:
+                      type: number
+        '400':
+          description: Error retrieving rates
+
+  /rates/buy:
+    get:
+      summary: Purchase Label
+      description: Buy a shipping label with a selected rate_id.
+      parameters:
+        - name: api_token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: rate_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Label purchased successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracking_code:
+                    type: string
+                  label_url:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Error purchasing label
+
+  /shipments/void:
+    post:
+      summary: Void Label
+      description: Void a previously purchased shipping label.
+      parameters:
+        - name: api_token
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tracking_code
+              properties:
+                tracking_code:
+                  type: string
+      responses:
+        '200':
+          description: Label voided successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracking_code:
+                    type: string
+        '400':
+          description: Error voiding label
+
+components:
+  schemas:
+    ShipmentItem:
+      type: object
+      properties:
+        sku:
+          type: string
+        title:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        tax:
+          type: number
+        shipping_cost:
+          type: number
+    Shipment:
+      type: object
+      properties:
+        length:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+        weight:
+          type: number
+        signature:
+          type: string
+          enum: [NO_SIGNATURE, SIGNATURE, ADULT_SIGNATURE]
+        insurance_provider:
+          type: string
+          enum: [SHIPSURANCE, CARRIER]
+        insurance_amount:
+          type: number
+        custom_print1:
+          type: string
+        custom_print2:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentItem'
+        notes:
+          type: array
+          items:
+            type: string
+    CreateOrderRequest:
+      type: object
+      required:
+        - store_name
+        - warehouse_name
+        - verify_address
+        - client_name
+        - client_street
+        - client_city
+        - client_state
+        - client_zip
+        - client_country
+        - shipments
+      properties:
+        store_name:
+          type: string
+        order_number:
+          type: string
+        warehouse_name:
+          type: string
+        verify_address:
+          type: boolean
+        client_name:
+          type: string
+        client_company:
+          type: string
+        client_email:
+          type: string
+        client_phone:
+          type: string
+        client_street:
+          type: string
+        client_street2:
+          type: string
+        client_city:
+          type: string
+        client_state:
+          type: string
+        client_zip:
+          type: string
+        client_country:
+          type: string
+        shipments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shipment'
+        notes:
+          type: array
+          items:
+            type: string
