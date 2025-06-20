@@ -1,28 +1,31 @@
-name: Deploy Swagger UI (dist folder) to GitHub Pages
+name: Deploy Swagger UI to GitHub Pages
 
 on:
   push:
-    branches: [main]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload dist folder
-        uses: actions/upload-pages-artifact@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          path: dist
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Swagger UI
+        run: npm run build:swagger
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
