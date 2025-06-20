@@ -16,18 +16,13 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Upload `dist/` to GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload dist folder
         uses: actions/upload-pages-artifact@v2
         with:
           path: dist
 
-  deploy-to-github-pages:
-    needs: deploy
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v2
